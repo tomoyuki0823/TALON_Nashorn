@@ -137,6 +137,20 @@ function getJustApiKey() {
     return decodeBase64(getEncryptedTokenFromTable());
 }
 
+/*
+function getJustDBMeisai(endpointNm, recordId) {
+    // API呼出パラメータマスタ取得
+    var mstApiRec = selectMstApiCallParam(endpointNm);
+
+    // APIを実行する
+    return callApi(
+        mstApiRec['METHOD'],                              // メソッド
+        mstApiRec['URL'].replace('{recordID}', recordId), // URL
+        "",                                               // DATA
+        JSON.parse(mstApiRec['HEADER'])                   // ヘッダー
+    );
+}
+*/
 
 /**
  * ヘッダー文字列中の {token} を実際のAPIキーに置換する
@@ -723,6 +737,7 @@ function _insertSiyosyoMainWork(
     putMapValue(map, 'COPY_FLG', "0");
     putMapValue(map, 'KOKIBANSU', "0");
     putMapValue(map, 'TRHK_CD', ankenObj.record.field_1674115320);
+    putMapValue(map, 'KIN_TANSHI', getJustKomokuCode(mitsumoriObj.record, "field_1689693307") === "なし" ? "0" : "1"); // 0 なし 1 あり
 
     map['TOUROKU_ID'] = user_id;
     map['TOUROKU_DT'] = sysdate;
@@ -730,6 +745,54 @@ function _insertSiyosyoMainWork(
     map['KOUSIN_DT'] = sysdate;
 
     TalonDbUtil.insertByMap(TALON.getDbConfig(), 'SIYOSYO_MAIN_WORK', map, Object.keys(map));
+
+
+    // 補足
+    // 以下は編集時に修正を行う運用
+    // 仕様書No
+    // map['SIYOSYO_NO'] = '';
+    // 仕様書Ver
+    // map['SIYOSYO_VER'] = '';
+    // 工場No
+    // map['KOJO_NO'] = '';
+    // 利益センターCd関連情報
+    // map['RIEKI_CENTER_CD'] = '';
+    // map['HIN_KAISOU_CD'] = '';
+    // map['RIEKI_CENTER_SEQ'] = '';
+    // 製品コード
+    // map['SEIHIN_CD'] = '';
+    // 穴明数
+    // map['SOU_HIT'] = '';
+    // ミニバイア
+    // map['MINI_VIA'] = '';
+    // 内外ライン幅
+    // map['NAISOU_LINE_HABA'] = '';
+    // map['GAISOU_LINE_HABA'] = '';
+    // map['NAISOU2'] = '';
+
+    // ライン間隔
+    // map['LINE_KANKAKU'] = '';
+    // ラインランド
+    // map['LINE_RANDO'] = '';
+    // ランド径
+    // map['RANDO_KEI'] = '';
+
+    // 最小仕上径
+    // map['MIN_SIAGE_KEI'] = '';
+
+    // 層構成番号
+    // map['SOUKOUSEI_NO'] = '';
+
+    // 検査規格
+    // map['KENSA_KIKAKU'] = '';
+
+    // IVH関連フラグ
+    // 発注時には判断不可
+    // map['IVH_FLG'] = '';
+    // map['IVH_NAISO_FLG'] = '';
+    // map['IVH_OYA_SIYO_SEQ'] = '';
+    // map['IVH_OYA_SIYO_NO'] = '';
+    // map['IVH_OYA_HINMOKU_CD'] = '';
 
     return map;
 }
@@ -812,6 +875,8 @@ function convertHyomenToCode(name) {
 
     if (name2) name = name2;
 
+    if (name == "フラックス（）") name = "ﾌﾗｯｸｽ";
+
     if (name == "鉛フリー半田レベラー") name = "鉛フリーレベラー";
 
     var tableName = "TLN_M_HANYO_CODE";
@@ -849,7 +914,7 @@ function convertHyomenToCode2(name) {
     };
     var map = selectOne(TALON.getDbConfig(), tableName, null, whereMap, null);
 
-    return map ? map['DSP2'] : null;
+    return map ? map['DPS2'] : null;
 }
 
 
@@ -918,7 +983,7 @@ function convertKizaiGradeToCode2(name) {
     };
     var map = selectOne(TALON.getDbConfig(), tableName, null, whereMap);
 
-    return map ? map['DPS2'] : null;
+    return map ? map['DSP2'] : null;
 }
 
 /**

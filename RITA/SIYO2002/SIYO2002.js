@@ -1131,7 +1131,7 @@ function putMapValue(map, key, value) {
 function getTokusyuKotei(PROD_INSTR_DISPLAY_FLG) {
     var lineDataMap = TALON.getConditionData();
     var SIYOSYO_NO = lineDataMap['SIYOSYO_NO'];
-    // SQLの構築
+
     var sql = ""
         + " SELECT "
         + "   SIYO20012.SIYOSYO_NO"
@@ -1147,12 +1147,29 @@ function getTokusyuKotei(PROD_INSTR_DISPLAY_FLG) {
         + "  ,SIYOM002.TOKUSYU_TEXT"
         + "  ,SIYOM002.TOKUSYU_FUYOPARAM"
         + " FROM SIYO20012"
-        + " LEFT OUTER JOIN SIYOM001"
-        + "   ON SIYOM001.BLOCK_NM = SIYO20012.TEXT"
+        // MAIN情報取得
+        + " OUTER APPLY ("
+        + "     SELECT TOP 1 * FROM SIYOSYO_MAIN_WORK"
+        + "     WHERE SIYOSYO_NO = SIYO20012.SIYOSYO_NO"
+        + " ) SIYOSYO_MAIN"
+        // BLOCK_ID 判定 APPLY
+        + " OUTER APPLY ("
+        + "     SELECT TOP 1 *"
+        + "     FROM SIYOM001"
+        + "     WHERE SIYOM001.BLOCK_NM = SIYO20012.TEXT"
+        + "       AND ("
+        + "             ( LEFT(SIYOM001.BLOCK_ID,1) BETWEEN '0' AND '9'"
+        + "               AND SIYOSYO_MAIN.TRHK_CD IS NOT NULL"
+        + "               AND SIYOM001.BLOCK_ID LIKE SIYOSYO_MAIN.TRHK_CD + '%' )"
+        + "             OR (LEFT(SIYOM001.BLOCK_ID,1) NOT BETWEEN '0' AND '9')"
+        + "           )"
+        + " ) SIYOM001"
+        // JOIN SIYOM002
         + " LEFT OUTER JOIN SIYOM002"
         + "   ON SIYOM002.BLOCK_ID = SIYOM001.BLOCK_ID"
         + " WHERE SIYO20012.SIYOSYO_NO = '" + SIYOSYO_NO + "'"
-        + " AND SIYOM002.PROD_INSTR_DISPLAY_FLG = '" + PROD_INSTR_DISPLAY_FLG + "' ORDER BY SIYOM002.KOUTEI_CD";
+        + "   AND SIYOM002.PROD_INSTR_DISPLAY_FLG = '" + PROD_INSTR_DISPLAY_FLG + "'"
+        + " ORDER BY SIYOM002.KOUTEI_CD";
 
     return TalonDbUtil.select(TALON.getDbConfig(), sql);
 }
@@ -1160,7 +1177,7 @@ function getTokusyuKotei(PROD_INSTR_DISPLAY_FLG) {
 function getTokusyuKotei2(PROD_INSTR_DISPLAY_FLG, KOUTEI_CD) {
     var lineDataMap = TALON.getConditionData();
     var SIYOSYO_NO = lineDataMap['SIYOSYO_NO'];
-    // SQLの構築
+
     var sql = ""
         + " SELECT "
         + "   SIYO20012.SIYOSYO_NO"
@@ -1176,14 +1193,30 @@ function getTokusyuKotei2(PROD_INSTR_DISPLAY_FLG, KOUTEI_CD) {
         + "  ,SIYOM002.TOKUSYU_TEXT"
         + "  ,SIYOM002.TOKUSYU_FUYOPARAM"
         + " FROM SIYO20012"
-        + " LEFT OUTER JOIN SIYOM001"
-        + "   ON SIYOM001.BLOCK_NM = SIYO20012.TEXT"
+        // MAIN
+        + " OUTER APPLY ("
+        + "     SELECT TOP 1 * FROM SIYOSYO_MAIN_WORK"
+        + "     WHERE SIYOSYO_NO = SIYO20012.SIYOSYO_NO"
+        + " ) SIYOSYO_MAIN"
+        // BLOCK APPLY
+        + " OUTER APPLY ("
+        + "     SELECT TOP 1 *"
+        + "     FROM SIYOM001"
+        + "     WHERE SIYOM001.BLOCK_NM = SIYO20012.TEXT"
+        + "       AND ("
+        + "             ( LEFT(SIYOM001.BLOCK_ID,1) BETWEEN '0' AND '9'"
+        + "               AND SIYOSYO_MAIN.TRHK_CD IS NOT NULL"
+        + "               AND SIYOM001.BLOCK_ID LIKE SIYOSYO_MAIN.TRHK_CD + '%' )"
+        + "             OR (LEFT(SIYOM001.BLOCK_ID,1) NOT BETWEEN '0' AND '9')"
+        + "           )"
+        + " ) SIYOM001"
+        // JOIN
         + " LEFT OUTER JOIN SIYOM002"
         + "   ON SIYOM002.BLOCK_ID = SIYOM001.BLOCK_ID"
         + " WHERE SIYO20012.SIYOSYO_NO = '" + SIYOSYO_NO + "'"
-        + " AND SIYOM002.PROD_INSTR_DISPLAY_FLG = '" + PROD_INSTR_DISPLAY_FLG + "'"
-        + " AND SIYOM002.KOUTEI_CD ='" + KOUTEI_CD + "'"
-        + " AND ( SIYOM002.TARGET_ITEM_1 <> 'BIKO' OR SIYOM002.TARGET_ITEM_1 IS NULL) "
+        + "   AND SIYOM002.PROD_INSTR_DISPLAY_FLG = '" + PROD_INSTR_DISPLAY_FLG + "'"
+        + "   AND SIYOM002.KOUTEI_CD = '" + KOUTEI_CD + "'"
+        + "   AND ( SIYOM002.TARGET_ITEM_1 <> 'BIKO' OR SIYOM002.TARGET_ITEM_1 IS NULL )";
 
     return TalonDbUtil.select(TALON.getDbConfig(), sql);
 }
@@ -1191,7 +1224,7 @@ function getTokusyuKotei2(PROD_INSTR_DISPLAY_FLG, KOUTEI_CD) {
 function getTokusyuKotei3(PROD_INSTR_DISPLAY_FLG, KOUTEI_CD) {
     var lineDataMap = TALON.getConditionData();
     var SIYOSYO_NO = lineDataMap['SIYOSYO_NO'];
-    // SQLの構築
+
     var sql = ""
         + " SELECT "
         + "   SIYO20012.SIYOSYO_NO"
@@ -1207,14 +1240,32 @@ function getTokusyuKotei3(PROD_INSTR_DISPLAY_FLG, KOUTEI_CD) {
         + "  ,SIYOM002.TOKUSYU_TEXT"
         + "  ,SIYOM002.TOKUSYU_FUYOPARAM"
         + " FROM SIYO20012"
-        + " LEFT OUTER JOIN SIYOM001"
-        + "   ON SIYOM001.BLOCK_NM = SIYO20012.TEXT"
+        // MAIN
+        + " OUTER APPLY ("
+        + "     SELECT TOP 1 * FROM SIYOSYO_MAIN_WORK"
+        + "     WHERE SIYOSYO_NO = SIYO20012.SIYOSYO_NO"
+        + " ) SIYOSYO_MAIN"
+        // BLOCK APPLY
+        + " OUTER APPLY ("
+        + "     SELECT TOP 1 *"
+        + "     FROM SIYOM001"
+        + "     WHERE SIYOM001.BLOCK_NM = SIYO20012.TEXT"
+        + "       AND ("
+        + "             ( LEFT(SIYOM001.BLOCK_ID,1) BETWEEN '0' AND '9'"
+        + "               AND SIYOSYO_MAIN.TRHK_CD IS NOT NULL"
+        + "               AND SIYOM001.BLOCK_ID LIKE SIYOSYO_MAIN.TRHK_CD + '%' )"
+        + "             OR (LEFT(SIYOM001.BLOCK_ID,1) NOT BETWEEN '0' AND '9')"
+        + "           )"
+        + " ) SIYOM001"
+        // JOIN
         + " LEFT OUTER JOIN SIYOM002"
         + "   ON SIYOM002.BLOCK_ID = SIYOM001.BLOCK_ID"
         + " WHERE SIYO20012.SIYOSYO_NO = '" + SIYOSYO_NO + "'"
-        + " AND SIYOM002.PROD_INSTR_DISPLAY_FLG = '" + PROD_INSTR_DISPLAY_FLG + "'"
-        + " AND SIYOM002.KOUTEI_CD ='" + KOUTEI_CD + "'"
-        + " AND ( SIYOM002.TARGET_ITEM_1 = 'BIKO' OR SIYOM002.KOUTEI_CD = '910' OR SIYOM002.KOUTEI_CD = '009') "
+        + "   AND SIYOM002.PROD_INSTR_DISPLAY_FLG = '" + PROD_INSTR_DISPLAY_FLG + "'"
+        + "   AND SIYOM002.KOUTEI_CD = '" + KOUTEI_CD + "'"
+        + "   AND ( SIYOM002.TARGET_ITEM_1 = 'BIKO'"
+        + "         OR SIYOM002.KOUTEI_CD = '910'"
+        + "         OR SIYOM002.KOUTEI_CD = '009' )";
 
     return TalonDbUtil.select(TALON.getDbConfig(), sql);
 }
@@ -1222,19 +1273,46 @@ function getTokusyuKotei3(PROD_INSTR_DISPLAY_FLG, KOUTEI_CD) {
 function getTokusyuKoteiInit() {
     var lineDataMap = TALON.getConditionData();
     var SIYOSYO_NO = lineDataMap['SIYOSYO_NO'];
-    // SQLの構築
+
     var sql = ""
         + " SELECT DISTINCT"
-        + "   SIYO20012.SIYOSYO_NO"
-        + "  ,SIYOM002.KOUTEI_CD"
+        + "     SIYO20012.SIYOSYO_NO"
+        + "    ,SIYOM002.KOUTEI_CD"
         + " FROM SIYO20012"
-        + " OUTER APPLY ( SELECT TOP 1 * FROM SIYOM001 WHERE SIYOM001.BLOCK_NM = SIYO20012.TEXT ) SIYOM001 "
+        // --- SIYOSYO_MAIN_WORK の APPLY ---
+        + " OUTER APPLY ("
+        + "     SELECT TOP 1 *"
+        + "     FROM SIYOSYO_MAIN_WORK"
+        + "     WHERE SIYOSYO_NO = SIYO20012.SIYOSYO_NO"
+        + " ) SIYOSYO_MAIN"
+        // --- SIYOM001 の APPLY（先頭が数字かどうか＋TRHK_CD前方一致ロジックを統合） ---
+        + " OUTER APPLY ("
+        + "     SELECT TOP 1 *"
+        + "     FROM SIYOM001"
+        + "     WHERE SIYOM001.BLOCK_NM = SIYO20012.TEXT"
+        + "       AND ("
+        + "              ("
+        + "                  -- 先頭が数字で、TRHK_CD一致が必要"
+        + "                  LEFT(SIYOM001.BLOCK_ID,1) BETWEEN '0' AND '9'"
+        + "                  AND SIYOSYO_MAIN.TRHK_CD IS NOT NULL"
+        + "                  AND SIYOM001.BLOCK_ID LIKE SIYOSYO_MAIN.TRHK_CD + '%'"
+        + "              )"
+        + "              OR ("
+        + "                  -- 先頭が数字でない場合はそのまま採用"
+        + "                  LEFT(SIYOM001.BLOCK_ID,1) NOT BETWEEN '0' AND '9'"
+        + "              )"
+        + "           )"
+        + " ) SIYOM001"
+        // --- SIYOM002 との JOIN 部分 ---
         + " LEFT OUTER JOIN SIYOM002"
         + "   ON SIYOM002.BLOCK_ID = SIYOM001.BLOCK_ID"
-        + " WHERE SIYO20012.SIYOSYO_NO = '" + SIYOSYO_NO + "' AND KOUTEI_CD IS NOT NULL ORDER BY SIYOM002.KOUTEI_CD";
+        + " WHERE SIYO20012.SIYOSYO_NO = '" + SIYOSYO_NO + "'"
+        + "   AND KOUTEI_CD IS NOT NULL"
+        + " ORDER BY SIYOM002.KOUTEI_CD";
 
     return TalonDbUtil.select(TALON.getDbConfig(), sql);
 }
+
 
 /**
  * 汎用コードマスタから作業サイズ名称に対応するコードを取得します。

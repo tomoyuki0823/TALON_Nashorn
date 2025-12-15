@@ -737,6 +737,7 @@ function _insertSiyosyoMainWork(
     putMapValue(map, 'COPY_FLG', "0");
     putMapValue(map, 'KOKIBANSU', "0");
     putMapValue(map, 'TRHK_CD', ankenObj.record.field_1674115320);
+    putMapValue(map, 'KIN_TANSHI', getJustKomokuCode(mitsumoriObj.record, "field_1689693307") === "なし" ? "0" : "1"); // 0 なし 1 あり
 
     map['TOUROKU_ID'] = user_id;
     map['TOUROKU_DT'] = sysdate;
@@ -874,6 +875,8 @@ function convertHyomenToCode(name) {
 
     if (name2) name = name2;
 
+    if (name == "フラックス（）") name = "ﾌﾗｯｸｽ";
+
     if (name == "鉛フリー半田レベラー") name = "鉛フリーレベラー";
 
     var tableName = "TLN_M_HANYO_CODE";
@@ -944,8 +947,7 @@ function convertULNOToCode(name) {
 function convertKizaiGradeToCode(name) {
 
     var name1 = convertKizaiGradeToCode2(name);
-    TALON.addMsg(name1)
-
+   
     if (name1) name = name1
     var tableName = "TLN_M_HANYO_CODE";
     var whereMap = {
@@ -953,8 +955,7 @@ function convertKizaiGradeToCode(name) {
         "SIKIBETU_CODE": "GRADE"   // ワークサイズを識別するコード
     };
     var map = selectOne(TALON.getDbConfig(), tableName, null, whereMap);
-    TALON.addMsg(map)
-
+   
     if (!map) {
         var tableName2 = "TLN_M_HANYO_CODE";
         var whereMap2 = {
